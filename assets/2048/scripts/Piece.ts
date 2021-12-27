@@ -34,8 +34,7 @@ export default class Piece extends cc.Component {
         let str: string;
         switch (value) {
             case 0:
-                color = cc.Color.BLACK;
-                // color = new cc.Color().fromHEX("#784212");
+                color = new cc.Color().fromHEX("#784212");
                 break;
             case 2:
                 color = new cc.Color().fromHEX("#784212");
@@ -80,8 +79,15 @@ export default class Piece extends cc.Component {
                 color = new cc.Color().fromHEX("#641E16");
                 break;
         }
+
         this.nLabel.string = value.toString();
         this.nLabel.node.color = color;
+
+        if (value === 0) {
+            this.nLabel.node.opacity = 0;
+        } else {
+            this.nLabel.node.opacity = 255;
+        }
     }
 
     public init(x: number, y: number, n: number) {

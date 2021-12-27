@@ -29,7 +29,13 @@ export default class Board extends cc.Component {
 
     @property(cc.Node)
     private gameOverNode: cc.Node = null;
+    @property(cc.Node)
+    private buttons: cc.Node = null;
+    @property(cc.Node)
+    private score: cc.Node = null;
 
+
+    private scoreNum: number = 0;  // 等分
     private tileWidth: number = 0; // 一个方块的宽度
     private startX: number = 0; // 棋盘左下角
     private startY: number = 0;
@@ -38,11 +44,15 @@ export default class Board extends cc.Component {
 
     public pieceMap: Array<Array<Piece>>;  // 棋盘坐标中对应的 块
 
-    onLoad() {
+    /**
+     * 初始化 基础 坐标数据
+     */
+    private initPostion() {
         // 设置 重新开始按钮位置
         var restartNode = this.gameOverNode.getChildByName("restart");
         restartNode.x = cc.view.getVisibleSize().width / 2;
         restartNode.y = cc.view.getVisibleSize().height / 2;
+        restartNode.opacity = 255;
 
         // 1. 根据屏幕尺寸计算格子宽度，取较小的尺寸
         var width = cc.view.getVisibleSize().width / (this.colsSum + 1);
@@ -52,14 +62,31 @@ export default class Board extends cc.Component {
         this.boardWidth = this.tileWidth * this.colsSum;
         this.boardHeight = this.tileWidth * this.rowsSum;
 
-        // 2. 计算棋盘的左下角坐标
-        // 棋盘左下角的坐标
-        // 需要让棋盘居中
-        this.startX = (cc.view.getVisibleSize().width - this.boardWidth) / 2;
-        this.startY = (cc.view.getVisibleSize().height - this.boardHeight) / 2;
+        // 设置 棋盘的 坐标和大小
+        this.node.x = (cc.view.getVisibleSize().width - this.boardWidth) / 2;;
+        this.node.y = (cc.view.getVisibleSize().height - this.boardHeight) / 2;
+        this.node.width = this.boardWidth;
+        this.node.height = this.boardHeight;
+
+        // 设置 按钮组的坐标
+        this.buttons.x = this.node.x + this.boardWidth / 2;
+        this.buttons.y = this.node.y - 60;
+
+        // 设置分数节点
+        this.score.x = this.node.x + this.boardWidth / 2;
+        this.score.y = this.node.y + this.boardHeight + this.tileWidth;
+        this.score.getComponent(cc.Label).string = "当前记录：" + this.scoreNum.toString();
+    }
+
+    onLoad() {
+        // 1. 设置基础坐标数据
+        this.initPostion();
 
         // 3. 画棋盘
         this.graphics.clear();
+
+        // this.graphics.fillRect(startX);
+
         this.graphics.strokeColor = cc.Color.BLUE;
         // 遍历每列
         for (let x = 0; x < this.colsSum + 1; x++) {
@@ -117,6 +144,9 @@ export default class Board extends cc.Component {
         for (let i = 0; i < 2; i++) {
             this.newPiece();
         }
+
+        this.scoreNum = 0;
+        this.score.getComponent(cc.Label).string = "当前记录：" + this.scoreNum.toString();
     }
 
     /**
@@ -135,6 +165,7 @@ export default class Board extends cc.Component {
         }
         let n = Math.floor(Math.random() * zeroPieces.length);
         zeroPieces[n].randomNumber();
+        console.log("newPiece start: {}, {}", zeroPieces[n].x, zeroPieces[n].y);
     }
 
     /**
@@ -158,21 +189,25 @@ export default class Board extends cc.Component {
         let offsetX = endPos.x - startPos.x;
         let offsetY = endPos.y - startPos.y;
         if (Math.abs(offsetX) > Math.abs(offsetY)) {
-            if (offsetX > 40) {
+            if (offsetX > 5) {
+                console.log("onTouched:slideRight(),{}", offsetX);
                 if (this.slideRight() && this.judgeOver()) {
                     this.overGame();
                 }
-            } else if (offsetX < -40) {
+            } else if (offsetX < -5) {
+                console.log("onTouched:slideLeft(),{}", offsetX);
                 if (this.slideLeft() && this.judgeOver()) {
                     this.overGame();
                 }
             }
         } else {
-            if (offsetY > 40) {
+            if (offsetY > 5) {
+                console.log("onTouched:slideUp(),{}", offsetY);
                 if (this.slideUp() && this.judgeOver()) {
                     this.overGame();
                 }
-            } else if (offsetY < -40) {
+            } else if (offsetY < -5) {
+                console.log("onTouched:slideDown(),{}", offsetY);
                 if (this.slideDown() && this.judgeOver()) {
                     this.overGame();
                 }
@@ -230,6 +265,8 @@ export default class Board extends cc.Component {
      * 右移、合并
      */
     slideRight(): boolean {
+        console.log("slideRight start");
+
         let isMove = false;
 
         // 1. 同一行的数据进行，合并
@@ -246,9 +283,11 @@ export default class Board extends cc.Component {
                     if (this.pieceMap[x0][y].n === 0) {
                         continue;
                     } else if (this.pieceMap[x][y].n === this.pieceMap[x0][y].n) {
-                        this.pieceMap[x][y].n = this.pieceMap[x][y].n * 2;
+                        let newScore = this.pieceMap[x][y].n * 2;
+                        this.pieceMap[x][y].n = newScore;
                         this.pieceMap[x0][y].n = 0;
                         isMove = true;
+                        this.updateScore(newScore);
                         break;
                     } else {
                         break;
@@ -291,6 +330,7 @@ export default class Board extends cc.Component {
      * 左移、合并
      */
     slideLeft(): boolean {
+        console.log("slideLeft start");
         //左滑F
         //合并
         let isMove = false;
@@ -303,9 +343,11 @@ export default class Board extends cc.Component {
                     if (this.pieceMap[x0][y].n === 0) {
                         continue;
                     } else if (this.pieceMap[x][y].n === this.pieceMap[x0][y].n) {
-                        this.pieceMap[x][y].n *= 2;
+                        let newScore = this.pieceMap[x][y].n * 2;
+                        this.pieceMap[x][y].n = newScore;
                         this.pieceMap[x0][y].n = 0;
                         isMove = true;
+                        this.updateScore(newScore);
                         break;
                     } else {
                         break;
@@ -340,6 +382,7 @@ export default class Board extends cc.Component {
      * 下移、合并
      */
     slideDown(): boolean {
+        console.log("slideDown start");
         //下滑
         //合并
         let isMove = false;
@@ -352,9 +395,11 @@ export default class Board extends cc.Component {
                     if (this.pieceMap[x][y0].n === 0) {
                         continue;
                     } else if (this.pieceMap[x][y].n === this.pieceMap[x][y0].n) {
-                        this.pieceMap[x][y].n = this.pieceMap[x][y].n * 2;
+                        let newScore = this.pieceMap[x][y].n * 2;
+                        this.pieceMap[x][y].n = newScore;
                         this.pieceMap[x][y0].n = 0;
                         isMove = true;
+                        this.updateScore(newScore);
                         break;
                     } else {
                         break;
@@ -389,6 +434,7 @@ export default class Board extends cc.Component {
      * 上移、合并
      */
     slideUp(): boolean {
+        console.log("slideUp start");
         //上滑
         //合并
         let isMove = false;
@@ -401,9 +447,11 @@ export default class Board extends cc.Component {
                     if (this.pieceMap[x][y0].n === 0) {
                         continue;
                     } else if (this.pieceMap[x][y].n === this.pieceMap[x][y0].n) {
-                        this.pieceMap[x][y].n = this.pieceMap[x][y].n * 2;
+                        let newScore = this.pieceMap[x][y].n * 2;
+                        this.pieceMap[x][y].n = newScore;
                         this.pieceMap[x][y0].n = 0;
                         isMove = true;
+                        this.updateScore(newScore);
                         break;
                     } else {
                         break;
@@ -433,6 +481,14 @@ export default class Board extends cc.Component {
             this.newPiece();
         }
         return isMove;
+    }
+
+    // 更新分数
+    updateScore(newScore: number) {
+        if (newScore > this.scoreNum) {
+            this.scoreNum = newScore;
+            this.score.getComponent(cc.Label).string = "当前记录：" + this.scoreNum.toString();
+        }
     }
 
     /**
