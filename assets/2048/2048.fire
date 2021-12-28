@@ -299,6 +299,9 @@
     "_components": [
       {
         "__id__": 41
+      },
+      {
+        "__id__": 42
       }
     ],
     "_prefab": null,
@@ -1952,5 +1955,18 @@
     "_isTrimmedMode": true,
     "_atlas": null,
     "_id": "9cMlUGLblECK5k5q5fvgmL"
+  },
+  {
+    "__type__": "41ed7fQosFOD43+ZBWkNRm5",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 7
+    },
+    "_enabled": true,
+    "label": null,
+    "text": "hello",
+    "boardScript": null,
+    "_id": "1dMg/f4sdAvLSssgrCBNe3"
   }
 ]

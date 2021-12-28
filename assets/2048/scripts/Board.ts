@@ -34,7 +34,6 @@ export default class Board extends cc.Component {
     @property(cc.Node)
     private score: cc.Node = null;
 
-
     private scoreNum: number = 0;  // 等分
     private tileWidth: number = 0; // 一个方块的宽度
     private startX: number = 0; // 棋盘左下角
@@ -121,14 +120,8 @@ export default class Board extends cc.Component {
                 scriptClass.init(x, x, 0);
             }
         }
-
-        // 5. 绑定事件
-        this.addListeners();
     }
 
-    onDestroy(): void {
-        this.removeListeners();
-    }
 
     /**
      * 游戏重置
@@ -175,82 +168,6 @@ export default class Board extends cc.Component {
         this.reset();
     }
 
-
-    /**
-     * 触摸事件
-     * 
-     * @param event 
-     */
-    onTouched(event: cc.Event.EventTouch) {
-        console.log("EventTouch:", event);
-
-        let startPos = event.getStartLocation();
-        let endPos = event.getLocation();
-        let offsetX = endPos.x - startPos.x;
-        let offsetY = endPos.y - startPos.y;
-        if (Math.abs(offsetX) > Math.abs(offsetY)) {
-            if (offsetX > 5) {
-                console.log("onTouched:slideRight(),{}", offsetX);
-                if (this.slideRight() && this.judgeOver()) {
-                    this.overGame();
-                }
-            } else if (offsetX < -5) {
-                console.log("onTouched:slideLeft(),{}", offsetX);
-                if (this.slideLeft() && this.judgeOver()) {
-                    this.overGame();
-                }
-            }
-        } else {
-            if (offsetY > 5) {
-                console.log("onTouched:slideUp(),{}", offsetY);
-                if (this.slideUp() && this.judgeOver()) {
-                    this.overGame();
-                }
-            } else if (offsetY < -5) {
-                console.log("onTouched:slideDown(),{}", offsetY);
-                if (this.slideDown() && this.judgeOver()) {
-                    this.overGame();
-                }
-            }
-        }
-    }
-
-    /**
-     * 按钮事件 
-     * 
-     * @param event 
-     */
-    onKey(event: cc.Event.EventKeyboard) {
-        console.log("EventKeyboard:", event.keyCode);
-
-        // 新版本 cc.Key 没有了，也没有备注新的枚举类
-        switch (event.keyCode) {
-            case 38:  // UP
-            case 87:   // cc.KEY.w:
-                if (this.slideUp() && this.judgeOver()) {
-                    this.overGame();
-                }
-                break;
-            case 40: //cc.KEY.down:
-            case 83: //cc.KEY.s:
-                if (this.slideDown() && this.judgeOver()) {
-                    this.overGame();
-                }
-                break;
-            case 37://cc.KEY.left:
-            case 65: //cc.KEY.a:
-                if (this.slideLeft() && this.judgeOver()) {
-                    this.overGame();
-                }
-                break;
-            case 39://cc.KEY.right:
-            case 68: //cc.KEY.d:
-                if (this.slideRight() && this.judgeOver()) {
-                    this.overGame();
-                }
-                break;
-        }
-    }
 
     /**
      * 游戏结束
@@ -513,16 +430,6 @@ export default class Board extends cc.Component {
             }
         }
         return true;
-    }
-
-    private addListeners() {
-        this.node.on(cc.Node.EventType.TOUCH_END, this.onTouched, this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKey, this);
-    }
-
-    private removeListeners() {
-        this.node.off(cc.Node.EventType.TOUCH_END, this.onTouched, this);
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKey, this);
     }
 
     // update (dt) {}
